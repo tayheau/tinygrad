@@ -20,7 +20,7 @@ BASEDIR = pathlib.Path(__file__).parent
 if WIN: os.system("")
 
 def dedup(x:Iterable[T]): return list(dict.fromkeys(x))   # retains list order
-def argfix(*x):
+def argfix(*x): #tayheau notes: avoid nested lists and flatten single element ones
   if x and x[0].__class__ in (tuple, list):
     if len(x) != 1: raise ValueError(f"bad arg {x}")
     return tuple(x[0])
