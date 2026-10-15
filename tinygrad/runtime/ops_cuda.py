@@ -82,8 +82,7 @@ class CUDAAllocator(Allocator['CUDADevice']):
     check((api:=self.dev.api).cuCtxSetCurrent(self.dev.context))
     if (status:=api.cuMemHostRegister_v2(host.addr, buf.nbytes, 0)) != cuda.CUDA_ERROR_HOST_MEMORY_ALREADY_REGISTERED:
       check(status) # another device pinned it already
-    addr = host.addr if self.dev.host_ptr_is_dev_ptr else \
-      init_c_var(api.CUdeviceptr, lambda x: check(api.cuMemHostGetDevicePointer_v2(ctypes.byref(x), host.addr, 0))).value
+    addr = init_c_var(api.CUdeviceptr, lambda x: check(api.cuMemHostGetDevicePointer_v2(ctypes.byref(x), host.addr, 0))).value
     return BufferStorage(addr, host.addr if status == cuda.CUDA_SUCCESS else None)
   def _unmap(self, mapping:BufferStorage):
     if mapping.meta: check(self.dev.api.cuMemHostUnregister(mapping.meta))
@@ -104,8 +103,6 @@ class CUDADevice(Compiled):
     self.cu_device = init_c_var(api.CUdevice, lambda x: check(api.cuDeviceGet(ctypes.byref(x), device_id)))
     self.context = init_c_var(api.CUcontext, lambda x: check(api.cuCtxCreate_v2(ctypes.byref(x), 0, self.cu_device)))
     self.streams = [init_c_var(api.CUstream, lambda x: check(api.cuStreamCreate(ctypes.byref(x), cuda.CU_STREAM_NON_BLOCKING))) for _ in range(2)]
-    self.host_ptr_is_dev_ptr = api is not cuda or init_c_var(ctypes.c_int, lambda x:\
-    check(api.cuDeviceGetAttribute(ctypes.byref(x), cuda.CU_DEVICE_ATTRIBUTE_CAN_USE_HOST_POINTER_FOR_REGISTERED_MEM, self.cu_device))).value
     super().__init__(device, CUDAAllocator(self), self.renderers, None, arch=self.get_arch(device_id))
     Compiled.pm_bufferize += PatternMatcher([
       (UPat(Ops.ALLOC, tag=self.tag("cuda")), lambda d=self: d.handles),
