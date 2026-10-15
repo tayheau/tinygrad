@@ -16,7 +16,8 @@ HIPIFY = dict(CUdevice=hip.hipDevice_t, CUcontext=hip.hipCtx_t, CUstream=hip.hip
   cuMemHostAlloc=lambda p, sz, _: hip.hipHostMalloc(p, sz, hip.hipHostMallocCoherent), cuMemFreeHost=hip.hipHostFree,
   cuMemHostRegister_v2=hip.hipHostRegister, cuMemHostUnregister=hip.hipHostUnregister, cuModuleLoadData=hip.hipModuleLoadData,
   cuModuleGetFunction=hip.hipModuleGetFunction, cuLaunchKernel=hip.hipModuleLaunchKernel, cuMemcpyAsync=hip.hipMemcpyAsync,
-  cuStreamWaitValue64_v2=hip.hipStreamWaitValue64, cuStreamWriteValue64_v2=hip.hipStreamWriteValue64, cuLaunchHostFunc=hip.hipLaunchHostFunc)
+  cuStreamWaitValue64_v2=hip.hipStreamWaitValue64, cuStreamWriteValue64_v2=hip.hipStreamWriteValue64, cuLaunchHostFunc=hip.hipLaunchHostFunc,
+  cuMemHostGetDevicePointer_v2=hip.hipHostGetDevicePointer)
 
 def hipify(c:UOp, f:UOp) -> UOp|None:
   if (fn:=HIPIFY.get(f.arg.name)) is None: return None
