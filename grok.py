@@ -1,3 +1,5 @@
+from tinygrad.mixin.op import ReductionStr
+from typing import Self
 from collections import defaultdict
 import sys, math, json
 from itertools import product
@@ -50,13 +52,27 @@ class Transformer():
     x = x + self.m2(self.m1(x).relu())
     return self.out(x[:, -1])
 
+def accurate_fixed_cross_entropy(self, Y:Self, reduction:ReductionStr="mean", label_smoothing:float=0.0) -> Self:
+    assert 0.0 <= label_smoothing <= 1.0, "label_smoothing must be in [0.0, 1.0]"
+    classes_dim = 0 if self.ndim == 1 else 1
+    if self.shape != Y.shape:
+      if self.max(classes_dim).shape != Y.shape: raise RuntimeError(f"shape mismatch: {self.shape=}, {Y.shape=}")
+      Y = Y.unsqueeze(classes_dim)._one_hot_along_dim(num_classes=self.shape[classes_dim], dim=classes_dim)
+      z_t = Y.where(self, 0).sum(classes_dim, keepdim=True)
+      loss = Y.where(0, self - z_t).logsumexp(classes_dim)
+      if label_smoothing: loss = loss + label_smoothing * (z_t.squeeze(classes_dim) - self.mean(classes_dim))
+      return loss._do_reduction(reduction)
+    Y = (1 - label_smoothing)*Y + label_smoothing / int(Y.shape[classes_dim])
+    return -self.log_softmax(classes_dim).mul(Y).sum(classes_dim)._do_reduction(reduction)
+
+
 
 def fixed_cross_entropy(z:Tensor, y:Tensor) -> Tensor:
   is_t = y.one_hot(z.shape[-1]).bool()
   z_t = is_t.where(z, 0).sum(-1, keepdim=True)
   return is_t.where(0, z - z_t).logsumexp(-1).mean()
 
-def loss_fn(z:Tensor, y:Tensor) -> Tensor: return fixed_cross_entropy(z, y) if FIX else z.cross_entropy(y)
+def loss_fn(z:Tensor, y:Tensor) -> Tensor: return accurate_fixed_cross_entropy(z, y) if FIX else z.cross_entropy(y)
 
 def logitmargin(logits:Tensor, Y:Tensor)->Tensor:
   is_t = Y.one_hot(logits.shape[1]).bool()
@@ -86,7 +102,11 @@ def train(seed:int)->defaultdict[str, list]:
 
 
 if __name__=="__main__":
-  runs = []
-  for seed in range(SEED, SEED+NSEEDS):
-    runs.append(train(seed))
-    with open(sys.argv[1], "w") as f: json.dump(runs, f)
+  from tinygrad.helpers import GlobalCounters
+  z, y = Tensor.randn(480, P).realize(), Tensor.randint(480, high=P).realize()
+  for fix in (0, 1):
+    setfix(fix)
+    GlobalCounters.reset(); loss = loss_fn(z, y); Tensor.realize(loss, *loss.gradient(z))
+    print(f"FIX={fix}: {GlobalCounters.kernel_count}")
+# FIX=0: 5
+# FIX=1: 7
