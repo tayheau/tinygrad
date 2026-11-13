@@ -864,7 +864,7 @@ class ElementwiseMixin(CreationMixin):
     """
     u = (a:=self+1)-1
     diff = (e:=u.eq(0)).where(self, ((self - u)*a.log())/e.where(1, u))
-    return (self + 1).log() + diff.detach()
+    return a.log() + self.eq(math.inf).where(math.inf, diff).detach()
 
   def atanh(self) -> Self:
     """
