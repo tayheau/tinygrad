@@ -997,6 +997,10 @@ class TestOps(TensorTestCase):
     helper_test_op([(45,65)], torch.log2, Tensor.log2)
     helper_test_op(None, torch.log2, Tensor.log2, vals=[[math.inf, -math.inf, math.nan]])
     helper_test_op([()], torch.log2, Tensor.log2)
+  def test_log1p(self):
+    helper_test_op([(45, 65)], torch.log1p, Tensor.log1p)
+    # helper_test_op(None, torch.log1p, Tensor.log1p, vals=[[math.inf, -math.inf, math.nan]])
+    # helper_test_op([()], torch.log1p, Tensor.log1p)
 
   def test_exp(self):
     helper_test_op([(45,65)], torch.exp, Tensor.exp)

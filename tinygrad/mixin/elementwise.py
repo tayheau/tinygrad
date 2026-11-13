@@ -851,6 +851,19 @@ class ElementwiseMixin(CreationMixin):
     """
     return self.log2()*math.log10(2)
 
+  def log1p(self) -> Self:
+    """
+    Computes the natural logarithm of (1 + x) element wise.
+    This function is more accurate than Self.log() for small values of input
+
+    - Proved: https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+
+    ```python exec="true" source="above" session="tensor" result="python"
+    print(Tensor([1., 1e-5, 1e-8]).log1p().numpy())
+    ```
+    """
+    return (d:=(a:= 1+self) - 1).eq(0).where(self, (self*a.log()) / d)
+
   def atanh(self) -> Self:
     """
     Applies the Inverse Hyperbolic Tangent (atanh) function element-wise.
