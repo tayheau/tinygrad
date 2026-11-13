@@ -862,7 +862,9 @@ class ElementwiseMixin(CreationMixin):
     print(Tensor([1., 1e-5, 1e-8]).log1p().numpy())
     ```
     """
-    return (d:=(a:= 1+self) - 1).eq(0).where(self, (self*a.log()) / d)
+    u = (a:=self+1)-1
+    diff = (e:=u.eq(0)).where(self, ((self - u)*a.log())/e.where(1, u))
+    return (self + 1).log() + diff.detach()
 
   def atanh(self) -> Self:
     """
