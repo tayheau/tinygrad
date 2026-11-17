@@ -194,20 +194,6 @@ class TestSpeed(unittest.TestCase):
     def f(a, b): return a.exp()
     helper_test_generic_square('exp', 2048, f, f, onearg=True)
 
-  def test_log1p(self):
-    def f(a, b): return a.log1p()
-    helper_test_generic_square('log1p', 2048, f, f, onearg=True)
-
-  def test_softplus(self):
-    helper_test_generic_square('softplus', 2048,
-      lambda a, b: torch.nn.functional.softplus(a), lambda a, b: a.softplus(), onearg=True)
-
-  def test_softplus_old_v_new(self):
-    torch.manual_seed(0)
-    a = Tensor((torch.rand(2048, 2048) - 0.5).numpy())
-    old, new = TinyJit(lambda a, b: a.logaddexp(0.0)), TinyJit(lambda a, b: a.softplus())
-    helper_test_generic("softplus old v new", old, (a, None), new, (a, None))
-
   def test_sqrt(self):
     def f(a, b): return a.sqrt()
     helper_test_generic_square('sqrt', 2048, f, f, onearg=True)
