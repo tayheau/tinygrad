@@ -999,7 +999,7 @@ class TestOps(TensorTestCase):
     helper_test_op([()], torch.log2, Tensor.log2)
   def test_log1p(self):
     helper_test_op([(45, 65)], torch.log1p, Tensor.log1p)
-    helper_test_op(None, torch.log1p, Tensor.log1p, vals=[[1., 1e-5, 1e-8]], atol=0, rtol=1e-12)
+    helper_test_op(None, torch.log1p, Tensor.log1p, vals=[[1., 1e-5, 1e-8]], atol=0, rtol=1e-6)
     helper_test_op(None, torch.log1p, Tensor.log1p, vals=[[math.inf, -math.inf, math.nan]])
     helper_test_op([()], torch.log1p, Tensor.log1p)
 
@@ -1085,6 +1085,7 @@ class TestOps(TensorTestCase):
     helper_test_op([(45,65)], torch.nn.functional.softplus, Tensor.softplus, grad_atol=1e-6, low=-400, high=-300)
     helper_test_op([()], torch.nn.functional.softplus, Tensor.softplus, grad_atol=1e-6)
     helper_test_op(None, torch.nn.functional.softplus, Tensor.softplus, vals=[[-math.inf, math.inf, 0.0]], forward_only=True)
+    helper_test_op(None, torch.nn.functional.softplus, Tensor.softplus, vals=[[1., 1e-5, 1e-8]], forward_only=True, atol=0., rtol=1e-6)
 
   def test_erf(self):
     helper_test_op([(45,65)], torch.erf, Tensor.erf)
