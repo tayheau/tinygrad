@@ -1020,7 +1020,7 @@ class ElementwiseMixin(CreationMixin):
     print(Tensor([-3., -2., -1., 0., 1., 2., 3.]).softplus().numpy())
     ```
     """
-    return (1/beta) * (self*beta).logaddexp(0.0)
+    return (1/beta) * ((pos:=(x:=self*beta)>0).where(x, 0) + pos.where(-x, x).exp().log1p())
 
   def mish(self) -> Self:
     """
